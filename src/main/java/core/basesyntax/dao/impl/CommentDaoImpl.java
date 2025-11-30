@@ -3,7 +3,12 @@ package core.basesyntax.dao.impl;
 import core.basesyntax.dao.CommentDao;
 import core.basesyntax.model.Comment;
 import java.util.List;
+
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+
+import static core.basesyntax.HibernateUtil.getSessionFactory;
 
 public class CommentDaoImpl extends AbstractDao implements CommentDao {
     public CommentDaoImpl(SessionFactory sessionFactory) {
@@ -12,21 +17,55 @@ public class CommentDaoImpl extends AbstractDao implements CommentDao {
 
     @Override
     public Comment create(Comment entity) {
-        return null;
+        Transaction transaction = null;
+        try (Session session = getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+            session.persist(entity);
+            transaction.commit();
+            return entity;
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            throw new RuntimeException("Can't insert Comment entity: " + entity, e);
+        }
     }
 
     @Override
     public Comment get(Long id) {
-        return null;
+        try (Session session = getSessionFactory().openSession()) {
+            return session.get(Comment.class, id);
+        } catch (Exception e) {
+            throw new RuntimeException("Can't get Comment by id: " + id, e);
+        }
     }
 
     @Override
     public List<Comment> getAll() {
-        return null;
+        try (Session session = getSessionFactory().openSession()) {
+            return session.createQuery("FROM Comment", Comment.class).getResultList();
+        } catch (Exception e) {
+            throw new RuntimeException("Can't get all Comments", e);
+        }
     }
 
     @Override
     public void remove(Comment entity) {
+        Transaction transaction = null;
+        try (Session session = getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
 
+            Comment managed = session.contains(entity)
+                    ? entity
+                    : session.merge(entity);
+
+            session.remove(managed);
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            throw new RuntimeException("Can't remove Comment entity: " + entity, e);
+        }
     }
 }
