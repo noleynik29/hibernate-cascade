@@ -1,15 +1,13 @@
 package core.basesyntax.dao.impl;
 
+import static core.basesyntax.HibernateUtil.getSessionFactory;
+
 import core.basesyntax.dao.SmileDao;
-import core.basesyntax.model.Message;
 import core.basesyntax.model.Smile;
 import java.util.List;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-
-import static core.basesyntax.HibernateUtil.getSessionFactory;
 
 public class SmileDaoImpl extends AbstractDao implements SmileDao {
     public SmileDaoImpl(SessionFactory sessionFactory) {
