@@ -52,11 +52,11 @@ public class CommentDaoImpl extends AbstractDao implements CommentDao {
         try (Session session = factory.openSession()) {
             transaction = session.beginTransaction();
 
-            Comment managed = session.contains(entity)
-                    ? entity
-                    : session.merge(entity);
+            Comment persistent = session.get(Comment.class, entity.getId());
+            if (persistent != null) {
+                session.remove(persistent);
+            }
 
-            session.remove(managed);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) {

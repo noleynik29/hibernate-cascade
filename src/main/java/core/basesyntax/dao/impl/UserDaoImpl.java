@@ -1,6 +1,7 @@
 package core.basesyntax.dao.impl;
 
 import core.basesyntax.dao.UserDao;
+import core.basesyntax.model.Comment;
 import core.basesyntax.model.User;
 import java.util.List;
 import org.hibernate.Session;
@@ -52,11 +53,11 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         try (Session session = factory.openSession()) {
             transaction = session.beginTransaction();
 
-            User managed = session.contains(entity)
-                    ? entity
-                    : session.merge(entity);
+            User persistent = session.get(User.class, entity.getId());
+            if (persistent != null) {
+                session.remove(persistent);
+            }
 
-            session.remove(managed);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) {

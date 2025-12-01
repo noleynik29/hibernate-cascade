@@ -1,6 +1,7 @@
 package core.basesyntax.dao.impl;
 
 import core.basesyntax.dao.MessageDao;
+import core.basesyntax.model.Comment;
 import core.basesyntax.model.Message;
 import java.util.List;
 import org.hibernate.Session;
@@ -51,7 +52,12 @@ public class MessageDaoImpl extends AbstractDao implements MessageDao {
         Transaction transaction = null;
         try (Session session = factory.openSession()) {
             transaction = session.beginTransaction();
-            session.remove(session.contains(entity) ? entity : session.merge(entity));
+
+            Message persistent = session.get(Message.class, entity.getId());
+            if (persistent != null) {
+                session.remove(persistent);
+            }
+
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) {
