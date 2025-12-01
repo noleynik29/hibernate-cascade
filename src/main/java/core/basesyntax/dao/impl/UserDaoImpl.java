@@ -1,7 +1,5 @@
 package core.basesyntax.dao.impl;
 
-import static core.basesyntax.HibernateUtil.getSessionFactory;
-
 import core.basesyntax.dao.UserDao;
 import core.basesyntax.model.User;
 import java.util.List;
@@ -17,7 +15,7 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
     @Override
     public User create(User entity) {
         Transaction transaction = null;
-        try (Session session = getSessionFactory().openSession()) {
+        try (Session session = factory.openSession()) {
             transaction = session.beginTransaction();
             session.persist(entity);
             transaction.commit();
@@ -32,7 +30,7 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
 
     @Override
     public User get(Long id) {
-        try (Session session = getSessionFactory().openSession()) {
+        try (Session session = factory.openSession()) {
             return session.get(User.class, id);
         } catch (Exception e) {
             throw new RuntimeException("Can't get User by id: " + id, e);
@@ -41,7 +39,7 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
 
     @Override
     public List<User> getAll() {
-        try (Session session = getSessionFactory().openSession()) {
+        try (Session session = factory.openSession()) {
             return session.createQuery("FROM User", User.class).getResultList();
         } catch (Exception e) {
             throw new RuntimeException("Can't get all Users", e);
@@ -51,7 +49,7 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
     @Override
     public void remove(User entity) {
         Transaction transaction = null;
-        try (Session session = getSessionFactory().openSession()) {
+        try (Session session = factory.openSession()) {
             transaction = session.beginTransaction();
 
             User managed = session.contains(entity)

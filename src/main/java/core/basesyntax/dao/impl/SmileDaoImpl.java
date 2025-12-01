@@ -1,7 +1,5 @@
 package core.basesyntax.dao.impl;
 
-import static core.basesyntax.HibernateUtil.getSessionFactory;
-
 import core.basesyntax.dao.SmileDao;
 import core.basesyntax.model.Smile;
 import java.util.List;
@@ -17,7 +15,7 @@ public class SmileDaoImpl extends AbstractDao implements SmileDao {
     @Override
     public Smile create(Smile entity) {
         Transaction transaction = null;
-        try (Session session = getSessionFactory().openSession()) {
+        try (Session session = factory.openSession()) {
             transaction = session.beginTransaction();
             session.persist(entity);
             transaction.commit();
@@ -32,7 +30,7 @@ public class SmileDaoImpl extends AbstractDao implements SmileDao {
 
     @Override
     public Smile get(Long id) {
-        try (Session session = getSessionFactory().openSession()) {
+        try (Session session = factory.openSession()) {
             return session.get(Smile.class, id);
         } catch (Exception e) {
             throw new RuntimeException("Can't get Smile by id: " + id, e);
@@ -41,7 +39,7 @@ public class SmileDaoImpl extends AbstractDao implements SmileDao {
 
     @Override
     public List<Smile> getAll() {
-        try (Session session = getSessionFactory().openSession()) {
+        try (Session session = factory.openSession()) {
             return session.createQuery("FROM Smile", Smile.class).getResultList();
         } catch (Exception e) {
             throw new RuntimeException("Can't get all Smiles", e);

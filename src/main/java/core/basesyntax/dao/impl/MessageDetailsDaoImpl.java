@@ -1,7 +1,5 @@
 package core.basesyntax.dao.impl;
 
-import static core.basesyntax.HibernateUtil.getSessionFactory;
-
 import core.basesyntax.dao.MessageDetailsDao;
 import core.basesyntax.model.MessageDetails;
 import org.hibernate.Session;
@@ -16,7 +14,7 @@ public class MessageDetailsDaoImpl extends AbstractDao implements MessageDetails
     @Override
     public MessageDetails create(MessageDetails entity) {
         Transaction transaction = null;
-        try (Session session = getSessionFactory().openSession()) {
+        try (Session session = factory.openSession()) {
             transaction = session.beginTransaction();
             session.persist(entity);
             transaction.commit();
@@ -31,7 +29,7 @@ public class MessageDetailsDaoImpl extends AbstractDao implements MessageDetails
 
     @Override
     public MessageDetails get(Long id) {
-        try (Session session = getSessionFactory().openSession()) {
+        try (Session session = factory.openSession()) {
             return session.get(MessageDetails.class, id);
         } catch (Exception e) {
             throw new RuntimeException("Can't get MessageDetails by id: " + id, e);

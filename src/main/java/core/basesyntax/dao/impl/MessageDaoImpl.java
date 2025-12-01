@@ -1,7 +1,5 @@
 package core.basesyntax.dao.impl;
 
-import static core.basesyntax.HibernateUtil.getSessionFactory;
-
 import core.basesyntax.dao.MessageDao;
 import core.basesyntax.model.Message;
 import java.util.List;
@@ -17,7 +15,7 @@ public class MessageDaoImpl extends AbstractDao implements MessageDao {
     @Override
     public Message create(Message entity) {
         Transaction transaction = null;
-        try (Session session = getSessionFactory().openSession()) {
+        try (Session session = factory.openSession()) {
             transaction = session.beginTransaction();
             session.persist(entity);
             transaction.commit();
@@ -32,7 +30,7 @@ public class MessageDaoImpl extends AbstractDao implements MessageDao {
 
     @Override
     public Message get(Long id) {
-        try (Session session = getSessionFactory().openSession()) {
+        try (Session session = factory.openSession()) {
             return session.get(Message.class, id);
         } catch (Exception e) {
             throw new RuntimeException("Can't get Message by id: " + id, e);
@@ -41,7 +39,7 @@ public class MessageDaoImpl extends AbstractDao implements MessageDao {
 
     @Override
     public List<Message> getAll() {
-        try (Session session = getSessionFactory().openSession()) {
+        try (Session session = factory.openSession()) {
             return session.createQuery("FROM Message", Message.class).getResultList();
         } catch (Exception e) {
             throw new RuntimeException("Can't get all Messages", e);
@@ -51,7 +49,7 @@ public class MessageDaoImpl extends AbstractDao implements MessageDao {
     @Override
     public void remove(Message entity) {
         Transaction transaction = null;
-        try (Session session = getSessionFactory().openSession()) {
+        try (Session session = factory.openSession()) {
             transaction = session.beginTransaction();
             session.remove(session.contains(entity) ? entity : session.merge(entity));
             transaction.commit();
