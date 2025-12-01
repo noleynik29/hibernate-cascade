@@ -20,31 +20,32 @@ public class MessageDetailsDaoImpl extends AbstractDao implements MessageDetails
             transaction = session.beginTransaction();
             session.persist(entity);
             transaction.commit();
-            return entity;
         } catch (Exception e) {
-            if (transaction != null && transaction.getStatus().canRollback()) {
+            if (transaction != null) {
                 transaction.rollback();
             }
-            throw new RuntimeException("Can't insert MessageDetails entity: " + entity, e);
+            throw new RuntimeException("Error creating MessageDetails", e);
         } finally {
-            if (session != null && session.isOpen()) {
+            if (session != null) {
                 session.close();
             }
         }
+        return entity;
     }
 
     @Override
     public MessageDetails get(Long id) {
-        Session session = null;
-        try {
-            session = factory.openSession();
-            return session.get(MessageDetails.class, id);
+        Transaction transaction = null;
+        try (Session session = factory.openSession()) {
+            transaction = session.beginTransaction();
+            MessageDetails messageDetails = session.get(MessageDetails.class, id);
+            transaction.commit();
+            return messageDetails;
         } catch (Exception e) {
-            throw new RuntimeException("Can't get MessageDetails by id: " + id, e);
-        } finally {
-            if (session != null && session.isOpen()) {
-                session.close();
+            if (transaction != null) {
+                transaction.rollback();
             }
+            throw new RuntimeException("Error getting MessageDetails", e);
         }
     }
 }

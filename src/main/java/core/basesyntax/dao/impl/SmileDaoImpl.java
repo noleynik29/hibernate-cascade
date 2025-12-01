@@ -21,46 +21,48 @@ public class SmileDaoImpl extends AbstractDao implements SmileDao {
             transaction = session.beginTransaction();
             session.persist(entity);
             transaction.commit();
-            return entity;
         } catch (Exception e) {
-            if (transaction != null && transaction.getStatus().canRollback()) {
+            if (transaction != null) {
                 transaction.rollback();
             }
-            throw new RuntimeException("Can't insert Smile entity: " + entity, e);
+            throw new RuntimeException("Error creating Smile", e);
         } finally {
-            if (session != null && session.isOpen()) {
+            if (session != null) {
                 session.close();
             }
         }
+        return entity;
     }
 
     @Override
     public Smile get(Long id) {
-        Session session = null;
-        try {
-            session = factory.openSession();
-            return session.get(Smile.class, id);
+        Transaction transaction = null;
+        try (Session session = factory.openSession()) {
+            transaction = session.beginTransaction();
+            Smile smile = session.get(Smile.class, id);
+            transaction.commit();
+            return smile;
         } catch (Exception e) {
-            throw new RuntimeException("Can't get Smile by id: " + id, e);
-        } finally {
-            if (session != null && session.isOpen()) {
-                session.close();
+            if (transaction != null) {
+                transaction.rollback();
             }
+            throw new RuntimeException("Error getting Smile", e);
         }
     }
 
     @Override
     public List<Smile> getAll() {
-        Session session = null;
-        try {
-            session = factory.openSession();
-            return session.createQuery("FROM Smile", Smile.class).getResultList();
+        Transaction transaction = null;
+        try (Session session = factory.openSession()) {
+            transaction = session.beginTransaction();
+            List<Smile> smiles = session.createQuery("FROM Smile", Smile.class).list();
+            transaction.commit();
+            return smiles;
         } catch (Exception e) {
-            throw new RuntimeException("Can't get all Smiles", e);
-        } finally {
-            if (session != null && session.isOpen()) {
-                session.close();
+            if (transaction != null) {
+                transaction.rollback();
             }
+            throw new RuntimeException("Error getting Smile", e);
         }
     }
 }

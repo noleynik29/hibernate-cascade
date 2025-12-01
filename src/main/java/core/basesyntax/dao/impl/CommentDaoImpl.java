@@ -21,46 +21,48 @@ public class CommentDaoImpl extends AbstractDao implements CommentDao {
             transaction = session.beginTransaction();
             session.persist(entity);
             transaction.commit();
-            return entity;
         } catch (Exception e) {
-            if (transaction != null && transaction.getStatus().canRollback()) {
+            if (transaction != null) {
                 transaction.rollback();
             }
-            throw new RuntimeException("Can't insert Comment entity: " + entity, e);
+            throw new RuntimeException("Error creating comment", e);
         } finally {
-            if (session != null && session.isOpen()) {
+            if (session != null) {
                 session.close();
             }
         }
+        return entity;
     }
 
     @Override
     public Comment get(Long id) {
-        Session session = null;
-        try {
-            session = factory.openSession();
-            return session.get(Comment.class, id);
+        Transaction transaction = null;
+        try (Session session = factory.openSession()) {
+            transaction = session.beginTransaction();
+            Comment comment = session.get(Comment.class, id);
+            transaction.commit();
+            return comment;
         } catch (Exception e) {
-            throw new RuntimeException("Can't get Comment by id: " + id, e);
-        } finally {
-            if (session != null && session.isOpen()) {
-                session.close();
+            if (transaction != null) {
+                transaction.rollback();
             }
+            throw new RuntimeException("Error getting comment", e);
         }
     }
 
     @Override
     public List<Comment> getAll() {
-        Session session = null;
-        try {
-            session = factory.openSession();
-            return session.createQuery("FROM Comment", Comment.class).getResultList();
+        Transaction transaction = null;
+        try (Session session = factory.openSession()) {
+            transaction = session.beginTransaction();
+            List<Comment> comments = session.createQuery("FROM Comment ", Comment.class).list();
+            transaction.commit();
+            return comments;
         } catch (Exception e) {
-            throw new RuntimeException("Can't get all Comments", e);
-        } finally {
-            if (session != null && session.isOpen()) {
-                session.close();
+            if (transaction != null) {
+                transaction.rollback();
             }
+            throw new RuntimeException("Error getting comment", e);
         }
     }
 
@@ -71,18 +73,15 @@ public class CommentDaoImpl extends AbstractDao implements CommentDao {
         try {
             session = factory.openSession();
             transaction = session.beginTransaction();
-            Comment persistent = session.get(Comment.class, entity.getId());
-            if (persistent != null) {
-                session.remove(persistent);
-            }
+            session.remove(entity);
             transaction.commit();
         } catch (Exception e) {
-            if (transaction != null && transaction.getStatus().canRollback()) {
+            if (transaction != null) {
                 transaction.rollback();
             }
-            throw new RuntimeException("Can't remove Comment entity: " + entity, e);
+            throw new RuntimeException("Error deleting comment", e);
         } finally {
-            if (session != null && session.isOpen()) {
+            if (transaction != null) {
                 session.close();
             }
         }

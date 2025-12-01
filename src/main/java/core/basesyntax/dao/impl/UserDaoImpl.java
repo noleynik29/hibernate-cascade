@@ -21,46 +21,48 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
             transaction = session.beginTransaction();
             session.persist(entity);
             transaction.commit();
-            return entity;
         } catch (Exception e) {
-            if (transaction != null && transaction.getStatus().canRollback()) {
+            if (transaction != null) {
                 transaction.rollback();
             }
-            throw new RuntimeException("Can't insert User entity: " + entity, e);
+            throw new RuntimeException("Error creating User", e);
         } finally {
-            if (session != null && session.isOpen()) {
+            if (session != null) {
                 session.close();
             }
         }
+        return entity;
     }
 
     @Override
     public User get(Long id) {
-        Session session = null;
-        try {
-            session = factory.openSession();
-            return session.get(User.class, id);
+        Transaction transaction = null;
+        try (Session session = factory.openSession()) {
+            transaction = session.beginTransaction();
+            User user = session.get(User.class, id);
+            transaction.commit();
+            return user;
         } catch (Exception e) {
-            throw new RuntimeException("Can't get User by id: " + id, e);
-        } finally {
-            if (session != null && session.isOpen()) {
-                session.close();
+            if (transaction != null) {
+                transaction.rollback();
             }
+            throw new RuntimeException("Error getting User", e);
         }
     }
 
     @Override
     public List<User> getAll() {
-        Session session = null;
-        try {
-            session = factory.openSession();
-            return session.createQuery("FROM User", User.class).getResultList();
+        Transaction transaction = null;
+        try (Session session = factory.openSession()) {
+            transaction = session.beginTransaction();
+            List<User> users = session.createQuery("FROM User ", User.class).list();
+            transaction.commit();
+            return users;
         } catch (Exception e) {
-            throw new RuntimeException("Can't get all Users", e);
-        } finally {
-            if (session != null && session.isOpen()) {
-                session.close();
+            if (transaction != null) {
+                transaction.rollback();
             }
+            throw new RuntimeException("Error getting User", e);
         }
     }
 
@@ -71,18 +73,15 @@ public class UserDaoImpl extends AbstractDao implements UserDao {
         try {
             session = factory.openSession();
             transaction = session.beginTransaction();
-            User persistent = session.get(User.class, entity.getId());
-            if (persistent != null) {
-                session.remove(persistent);
-            }
+            session.remove(entity);
             transaction.commit();
         } catch (Exception e) {
-            if (transaction != null && transaction.getStatus().canRollback()) {
+            if (transaction != null) {
                 transaction.rollback();
             }
-            throw new RuntimeException("Can't remove User entity: " + entity, e);
+            throw new RuntimeException("Error deleting User", e);
         } finally {
-            if (session != null && session.isOpen()) {
+            if (transaction != null) {
                 session.close();
             }
         }
